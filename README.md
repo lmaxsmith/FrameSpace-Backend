@@ -58,7 +58,7 @@ response: {
 ```
 response: {
     "success": true,
-    "image" : {
+    "images" : [{
         "user" : "userID (you can ignore)",
     "creationTimestamp": 1673648241901, //unix timestamp
     "imageURL" : {
@@ -68,7 +68,27 @@ response: {
         }
     "orientation": "string formatted however its given"
     "location" : GEOJSON point,
-    }
+    }]
+}
+```
+
+
+### GET /images/:lat/:long/:range
+( :lat are placeholders for given values)
+```
+response: {
+    "success": true,
+    "images" : [{
+        "user" : "userID (you can ignore)",
+    "creationTimestamp": 1673648241901, //unix timestamp
+    "imageURL" : {
+        "cloudflareUUID": "String (ignore)"
+        "imageUploadURL": https://imagedelivery..." // upload the image as multipart form data to this URL, no headers required
+        "imageDownloadURL" "https://imagedelivery..." // url to get the image once uploaded and processed (~5 seconds)
+        }
+    "orientation": "string formatted however its given"
+    "location" : GEOJSON point,
+    }]
 }
 ```
 

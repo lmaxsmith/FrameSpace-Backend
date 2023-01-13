@@ -11,6 +11,7 @@ const FormData = require('form-data')
 
 const f = require(__base + 'utils/asyncExpressRouteWrapper')
 const MongoSetup = require(__base + 'db/MongodbSetup')
+const {Model} = require('mongoose')
 
 function generateKey() {
 	return crypto.randomBytes(20).toString('base64');
@@ -202,12 +203,31 @@ async function run() {
 	}))
 	
 	app.get('/images/:lat/:long/:range', f(async (req, res, next)=>{
+		if (!req.loggedIn) {
+			throw 'not logged in'
+		}
+		let images = await models.find({
+			location: {
+				$near: {
+					$maxDistance: req.body['range'],
+					$geometry: {
+						type: "Point",
+						coordinates: [req.body['long'], req.body['lat']]
+					}
+				}
+			}
+		}).exec()
+		res.json({
+			success: true,
+			images:  images
+		})
+		
 	
 	}))
 	
 	app.use(function (err, req, res, next) {
 		console.error(Date.now().toString() + ' Caught an error in api server: ', err)
-		res.status(422).json({
+		res.status(403).json({
 			success: false,
 			message: 'Invalid Request. See logs for more info near ' + Date.now().toString()
 		})
