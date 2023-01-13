@@ -24,7 +24,7 @@ async function run() {
 	
 	const app = express()
 	const port = 3000
-	app.use(bodyParse.json())
+	app.use(bodyParser.json())
 	app.disable('x-powered-by')
 	
 	app.use(cors({
@@ -181,10 +181,11 @@ async function run() {
 			location: req.body['location']
 		})
 		await image.save()
+		
+		image.imageURL = imageURL
 		res.json({
 			success: true,
-			image: image,
-			imageURL: imageURL
+			image: image
 		})
 	}))
 	
@@ -218,3 +219,5 @@ async function run() {
 	
 	
 }
+
+run()
