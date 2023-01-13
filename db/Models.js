@@ -42,19 +42,42 @@ class Models {
 				default: Date.now
 			},
 			imageURL : {
-				type: String,
-				required: true,
+				type: Schema.Types.ObjectId,
+				ref: 'ImageURL'
 			},
 			orientation: {
 				// this will probably be a different format later, for now just a string
 				type: String,
 				required: true
 			},
-			latLong: {
-				type: String,
-				required: true
+			location: {
+				type: {
+					type: String, // Don't do `{ location: { type: String } }`
+					enum: ['Point'], // 'location.type' must be 'Point'
+					required: true
+				},
+				coordinates: {
+					type: [Number],
+					required: true
+				}
 			}
 		}))
+		
+		
+		
+		this.ImageURL = mongoose.model('ImageURL', new Schema({
+			uploadStatus: {
+				type: String,
+				enum: ['waiting', 'uploaded']
+			},
+			imageUploadURL: {
+				type: String
+			},
+			imageDownloadURL: {
+				type: String
+			}
+		}))
+		
 		
 		
 	}

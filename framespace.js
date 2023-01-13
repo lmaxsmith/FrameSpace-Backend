@@ -135,21 +135,55 @@ async function run() {
 		if (!req.loggedIn) {
 			throw 'not logged in'
 		}
+		let imageURL = new models.ImageURL({
+			uploadStatus: 'waiting',
+		})
+		await imageURL.save()
 		let image = new models.Image({
 			user: req.validUserID,
-			imageURL : 'placeholder',
-			//todo: validate orientation and lat long data
+			imageURL : imageURL._id,
+			//todo: validate orientation and location data
 			orientation: req.body['orientation'],
-			latLong: req.body['latLong']
+			location: req.body['location']
 		})
 		await image.save()
 		res.json({
 			success: true,
-			image: image
+			image: image,
+			imageURL: imageURL
 		})
 	}))
 	
+	app.post('/imageUpload/:uploadID', f(async (req, res, next)=>{
 	
+	}))
+	
+	app.get('/images', f(async (req, res, next)=>{
+		if (!req.loggedIn) {
+			throw 'not logged in'
+		}
+		let images = await models.Image.find().populate('imageURL').exec()
+		res.json({
+			success: true,
+			images: images
+		})
+	}))
+	
+	app.get('/images/:lat/:long/:range', f(async (req, res, next)=>{
+	
+	}))
+	
+	app.use(function (err, req, res, next) {
+		console.error(Date.now().toString() + ' Caught an error in api server: ', err)
+		res.status(422).json({
+			success: false,
+			message: 'Invalid Request. See logs for more info near ' + Date.now().toString()
+		})
+	})
+	
+	app.listen(port, () => {
+		console.log(`FrameSpace app listening on port ${port}`)
+	})
 	
 	
 }

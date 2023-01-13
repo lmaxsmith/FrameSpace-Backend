@@ -12,16 +12,6 @@ async function MongodbSetup() {
 	let models = new Models(mongoose)
 	return models
 	
-	// return new Promise(resolve => {
-	// 	resolve(models);
-	// });
-	
-	// db.once('open', ()=>{
-	// 	console.log('db connection established')
-	// 	let models = new Models(mongoose)
-	//
-	//
-	// })
 }
 
 
