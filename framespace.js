@@ -6,6 +6,8 @@ const axios = require('axios')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const crypto = require('crypto')
+const fs = require('fs')
+const FormData = require('form-data')
 
 const f = require(__base + 'utils/asyncExpressRouteWrapper')
 const MongoSetup = require(__base + 'db/MongodbSetup')
@@ -16,6 +18,9 @@ function generateKey() {
 
 async function run() {
 	let models = await MongoSetup()
+	
+	let rawdataSecrets = fs.readFileSync('secrets.json');
+	let secrets = JSON.parse(rawdataSecrets);
 	
 	const app = express()
 	const port = 3000
@@ -135,8 +140,37 @@ async function run() {
 		if (!req.loggedIn) {
 			throw 'not logged in'
 		}
+		
+		
+		//curl --request POST \
+		//  --url https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/images/v2/direct_upload \
+		//  --header 'Authorization: Bearer <API_TOKEN>' \
+		//  --form 'requireSignedURLs=true' \
+		//  --form 'metadata={"key":"value"}'
+		
+		let form = new FormData()
+		form.append('requireSignedURLs', 'false')
+		form.append('metadata','{"key":"value"}')
+		
+		let cloudflareResponse = await axios({
+			method: 'post',
+			url: 'https://api.cloudflare.com/client/v4/accounts/'+secrets.cloudflareAccountID+'/images/v2/direct_upload',
+			headers: {'Authorization': 'Bearer ' +secrets.cloudflareAPIToken},
+			data: form
+		})
+		if (cloudflareResponse.data.success!=true) {
+			console.error('bad cloudflare response: ', cloudflareResponse)
+			throw 'bad cloudflare response'
+		}
+		
+		//cloudflareResponse.data.result.id
+		
+		
 		let imageURL = new models.ImageURL({
-			uploadStatus: 'waiting',
+			cloudflareUUID: cloudflareResponse.data.results.id,
+			imageUploadURL: cloudflareResponse.data.result.uploadURL,
+			imageDownloadURL: 'https://imagedelivery.net/'+secrets.cloudflareAccountHash+'/'+cloudflareResponse.data.results.id+'/public'
+			//https://imagedelivery.net/<ACCOUNT_HASH>/<IMAGE_ID>/<VARIANT_NAME>
 		})
 		await imageURL.save()
 		let image = new models.Image({
@@ -154,9 +188,6 @@ async function run() {
 		})
 	}))
 	
-	app.post('/imageUpload/:uploadID', f(async (req, res, next)=>{
-	
-	}))
 	
 	app.get('/images', f(async (req, res, next)=>{
 		if (!req.loggedIn) {

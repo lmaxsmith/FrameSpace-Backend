@@ -66,9 +66,9 @@ class Models {
 		
 		
 		this.ImageURL = mongoose.model('ImageURL', new Schema({
-			uploadStatus: {
+			cloudflareUUID: {
 				type: String,
-				enum: ['waiting', 'uploaded']
+				required: true
 			},
 			imageUploadURL: {
 				type: String
