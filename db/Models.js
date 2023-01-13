@@ -60,6 +60,10 @@ class Models {
 					type: [Number],
 					required: true
 				}
+			},
+			aspectRatio: {
+				type: Number,
+				required: true,
 			}
 		}))
 		

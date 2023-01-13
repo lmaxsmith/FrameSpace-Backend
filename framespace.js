@@ -179,7 +179,8 @@ async function run() {
 			imageURL : imageURL._id,
 			//todo: validate orientation and location data
 			orientation: req.body['orientation'],
-			location: req.body['location']
+			location: req.body['location'],
+			aspectRatio: req.body['aspectRatio']
 		})
 		await image.save()
 		
@@ -236,8 +237,6 @@ async function run() {
 	app.listen(port, () => {
 		console.log(`FrameSpace app listening on port ${port}`)
 	})
-	
-	
 }
 
 run()

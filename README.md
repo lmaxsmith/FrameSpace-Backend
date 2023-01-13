@@ -50,6 +50,7 @@ response: {
         }
         "orientation": "string formatted however its given"
         "location" : GEOJSON point,
+        "aspectRatio": 1.77777
     }
 }
 ```
@@ -68,6 +69,7 @@ response: {
         }
     "orientation": "string formatted however its given"
     "location" : GEOJSON point,
+    "aspectRatio": 1.77777
     }]
 }
 ```
@@ -88,6 +90,7 @@ response: {
         }
     "orientation": "string formatted however its given"
     "location" : GEOJSON point,
+    "aspectRatio": 1.77777
     }]
 }
 ```
