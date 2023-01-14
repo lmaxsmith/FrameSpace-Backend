@@ -166,11 +166,11 @@ async function run() {
 		
 		//cloudflareResponse.data.result.id
 		
-		
+		console.log(cloudflareResponse)
 		let imageURL = new models.ImageURL({
-			cloudflareUUID: cloudflareResponse.data.results.id,
+			cloudflareUUID: cloudflareResponse.data.result['id'],
 			imageUploadURL: cloudflareResponse.data.result.uploadURL,
-			imageDownloadURL: 'https://imagedelivery.net/'+secrets.cloudflareAccountHash+'/'+cloudflareResponse.data.results.id+'/public'
+			imageDownloadURL: 'https://imagedelivery.net/'+secrets.cloudflareAccountHash+'/'+cloudflareResponse.data.result.id+'/public'
 			//https://imagedelivery.net/<ACCOUNT_HASH>/<IMAGE_ID>/<VARIANT_NAME>
 		})
 		await imageURL.save()
@@ -222,7 +222,6 @@ async function run() {
 			success: true,
 			images:  images
 		})
-		
 	
 	}))
 	

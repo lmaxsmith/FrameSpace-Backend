@@ -4,7 +4,7 @@
 ### POST /signup
 ```
 request: {
-    "email": "myemail@example.com"
+    "email": "myemail@example.com",
     "password": "minimum8Characters"
 }
 ```
@@ -34,7 +34,8 @@ response: {
 ```
 request: {
     "orientation" : "orientationString",
-    "location": GEOJSON location
+    "location": GEOJSON location,
+    "aspectRatio": 1.777
 }
 ```
 ```
