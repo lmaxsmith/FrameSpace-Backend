@@ -20,8 +20,8 @@ function generateKey() {
 async function run() {
 	let models = await MongoSetup()
 	
-	let rawdataSecrets = fs.readFileSync('secrets.json');
-	let secrets = JSON.parse(rawdataSecrets);
+	let rawdataSecrets = fs.readFileSync('secrets.json')
+	let secrets = JSON.parse(rawdataSecrets)
 	
 	const app = express()
 	const port = 3000
@@ -33,7 +33,7 @@ async function run() {
 	}));
 	
 	app.use(f(async (req, res, next)=>{
-		// console.log('got request:', req)
+		console.log('got request:', req)
 		try {
 			if (req.get('FrameSpaceSessionKey')) {
 				let declaredSessionKey = req.get('FrameSpaceSessionKey')
@@ -87,6 +87,7 @@ async function run() {
 	}))
 	
 	app.post('/login', f(async(req, res, next)=>{
+		console.log('login req:', req)
 		try {
 			if (req.loggedIn === true) {
 				throw "already logged in"
