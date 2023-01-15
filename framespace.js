@@ -11,7 +11,7 @@ const FormData = require('form-data')
 
 const f = require(__base + 'utils/asyncExpressRouteWrapper')
 const MongoSetup = require(__base + 'db/MongodbSetup')
-const {Model} = require('mongoose')
+const {Model, model} = require('mongoose')
 
 function generateKey() {
 	return crypto.randomBytes(20).toString('base64');
@@ -33,7 +33,7 @@ async function run() {
 	}));
 	
 	app.use(f(async (req, res, next)=>{
-		console.log('got request:', req)
+		//console.log('got request:', req)
 		try {
 			if (req.get('FrameSpaceSessionKey')) {
 				let declaredSessionKey = req.get('FrameSpaceSessionKey')
@@ -87,7 +87,7 @@ async function run() {
 	}))
 	
 	app.post('/login', f(async(req, res, next)=>{
-		console.log('login req:', req)
+		//console.log('login req:', req)
 		try {
 			if (req.loggedIn === true) {
 				throw "already logged in"
@@ -175,9 +175,17 @@ async function run() {
 			//https://imagedelivery.net/<ACCOUNT_HASH>/<IMAGE_ID>/<VARIANT_NAME>
 		})
 		await imageURL.save()
+		
+		let stableDiffusionTransform = new models.StableDiffusionTransform({
+			url:''
+		})
+		await stableDiffusionTransform.save()
+		
+		
 		let image = new models.Image({
 			user: req.validUserID,
 			imageURL : imageURL._id,
+			stableDiffusionTransform: stableDiffusionTransform._id,
 			//todo: validate orientation and location data
 			orientation: req.body['orientation'],
 			location: req.body['location'],
@@ -190,6 +198,68 @@ async function run() {
 			success: true,
 			image: image
 		})
+	}))
+	
+	app.post('/transformImage/:imageID', f(async (req, res, next)=>{
+		if (!req.loggedIn) {
+			throw 'not logged in'
+			// todo: validate that its the users's image thats' being transformed
+		}
+		let image = await models.Image.findOne({
+			_id: req.params['imageID']
+		}).populate('imageURL').orFail()
+		let sDT = await models.StableDiffusionTransform.findOne({
+			_id : image.stableDiffusionTransform
+		})
+		
+		
+		//curl -s -X POST \
+		//   -d '{"version": "e5a34f913de0adc560d20e002c45ad43a80031b62caacc3d84010c6b6a64870c", "input": {"prompt": "a photo of an astronaut riding a horse on mars", "image": "https://imagedelivery.net/ujhzYNRv6SOhgoqzVFuKEw/55008537-72c5-49bb-0275-c97b8bcd4100/public", "mask": "https://imagedelivery.net/ujhzYNRv6SOhgoqzVFuKEw/f1008637-de29-4ebf-6386-27b38a72be00/public"}}' \
+		//   -H "Authorization: Token 459ab507b2a170a0ad2b4dd258a2fb2676f6f93d" \
+		//   -H 'Content-Type: application/json' \
+		//   "https://api.replicate.com/v1/predictions"
+		
+		let prompt = req.body['prompt']
+		let modelVersion = 'e5a34f913de0adc560d20e002c45ad43a80031b62caacc3d84010c6b6a64870c'
+		let downloadURL = image.imageURL.imageDownloadURL
+		let stableDiffusionResponse = await axios({
+			method: 'post',
+			url: 'https://api.replicate.com/v1/predictions',
+			headers:
+				{'Authorization': 'Token ' +secrets.replicateToken,
+					'Content-Type': 'application/json'
+				}
+			,
+			data: '{"version": "'+modelVersion+'", "input": {"prompt": "'+prompt+'", "image": "'+downloadURL+'", "mask": "https://imagedelivery.net/ujhzYNRv6SOhgoqzVFuKEw/f58a029b-3b9f-4b2d-c764-a229616d1000/public"}}'
+		})
+		sDT.status='waiting'
+		sDT.save() // purposely not await
+		
+		
+		while(true) {
+			let predictionResponse = await axios({
+				method: 'get',
+				url: stableDiffusionResponse.data.urls.get,
+				headers: {'Authorization': 'Token ' +secrets.replicateToken}
+				})
+			
+			if (predictionResponse.data.status =='succeeded') {
+				sDT.status='done'
+				sDT.url = predictionResponse.data.output[0]
+				res.json({
+					success: true,
+					stableDiffusionTransform: sDT
+				})
+				sDT.save()
+				return
+			}
+			await new Promise(r => setTimeout(r, 50));
+		}
+		
+		
+		
+		
+		
 	}))
 	
 	
@@ -211,10 +281,10 @@ async function run() {
 		let images = await models.find({
 			location: {
 				$near: {
-					$maxDistance: req.body['range'],
+					$maxDistance: req.params['range'],
 					$geometry: {
 						type: "Point",
-						coordinates: [req.body['long'], req.body['lat']]
+						coordinates: [req.params['long'], req.params['lat']]
 					}
 				}
 			}

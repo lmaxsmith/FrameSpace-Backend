@@ -45,6 +45,10 @@ class Models {
 				type: Schema.Types.ObjectId,
 				ref: 'ImageURL'
 			},
+			stableDiffusionTransform: {
+				type: Schema.Types.ObjectId,
+				ref: 'StableDiffusionTransform'
+			},
 			orientation: {
 				// this will probably be a different format later, for now just a string
 				type: String,
@@ -78,6 +82,17 @@ class Models {
 				type: String
 			},
 			imageDownloadURL: {
+				type: String
+			}
+		}))
+		
+		this.StableDiffusionTransform = mongoose.model('StableDiffusionTransform', new Schema({
+			status: {
+				type: String,
+				enum: ['nosubmit', 'waiting', 'done', 'fail'],
+				default: 'nosubmit'
+			},
+			url: {
 				type: String
 			}
 		}))
